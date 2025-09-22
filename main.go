@@ -14,7 +14,7 @@ func main() {
 	path := flag.String("p", "http://google.com", "path default to 'google.com' if not set")
 	flag.Parse()
 
-	pathString := string(*path)
+	pathString := *path
 	url := pathString
 	if strings.HasPrefix(pathString, "/") {
 		url = "http://google.com"+pathString
@@ -37,7 +37,9 @@ func main() {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for _, attr := range n.Attr {
 				if attr.Key == "href" {
-					fmt.Println(attr.Val)
+					result := checkStatus(attr.Val)
+					link := attr.Val
+					fmt.Printf("[%s] %s\n", result, link)
 				}
 			}
 		}
@@ -46,4 +48,17 @@ func main() {
 		}
 	}
 	traverse(doc)
+}
+
+func checkStatus(link string) string {
+	url := link
+	if strings.HasPrefix(link, "/") {
+		url = "http://google.com"+link
+	}
+	resp, err := http.Head(url)
+	if err != nil {
+		log.Printf("error reading URL: %v", err)
+	}
+	defer resp.Body.Close()
+	return resp.Status
 }
